@@ -19,11 +19,9 @@ namespace Demo_Web_API.Services
         public async Task<User> RegisterUserAsync(RegisterUserDto dto)
         {
 
-            // Validar si el email ya existe
             if (await _appDBContext.Users.AnyAsync(u => u.Email == dto.Email))
                 throw new Exception("El email ya está registrado.");
 
-            // Crear usuario con contraseña hasheada
             var user = new User
             {
                 Email = dto.Email,
@@ -35,6 +33,7 @@ namespace Demo_Web_API.Services
             await _appDBContext.SaveChangesAsync();
             return user;
         }
+
         public async Task<List<User>> Obtener()
         {
             return await _appDBContext.Users
@@ -46,6 +45,52 @@ namespace Demo_Web_API.Services
                     PasswordHash = u.PasswordHash 
                 })
                 .ToListAsync();
+        }
+
+        public async Task<User> UpdateUserAsync(UpdateUserDto dto)
+        {
+            var user = await _appDBContext.Users.FindAsync(dto.Id);
+            if (user == null)
+                throw new Exception("Usuario no encontrado.");
+
+            if (await _appDBContext.Users.AnyAsync(u => u.Email == dto.Email && u.Id != dto.Id))
+                throw new Exception("El email ya está en uso por otro usuario.");
+
+            user.UserName = dto.UserName;
+            user.Email = dto.Email;
+
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                user.PasswordHash = HashPassword(dto.Password);
+            }
+
+            await _appDBContext.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<User> UpdateEmailAsync(UpdateEmailDto dto)
+        {
+            var user = await _appDBContext.Users.FindAsync(dto.Id);
+            if (user == null)
+                throw new Exception("Usuario no encontrado.");
+
+            if (await _appDBContext.Users.AnyAsync(u => u.Email == dto.Email && u.Id != dto.Id))
+                throw new Exception("El email ya está en uso por otro usuario.");
+
+            user.Email = dto.Email;
+            await _appDBContext.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<bool> DeleteUserAsync(int id)
+        {
+            var user = await _appDBContext.Users.FindAsync(id);
+            if (user == null)
+                throw new Exception("Usuario no encontrado.");
+
+            _appDBContext.Users.Remove(user);
+            await _appDBContext.SaveChangesAsync();
+            return true;
         }
 
         public string HashPassword(string password)

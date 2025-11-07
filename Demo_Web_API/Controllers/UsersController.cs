@@ -35,6 +35,7 @@ namespace Demo_Web_API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
         [HttpGet("obtener")]
         public async Task<IActionResult> Obtener()
         {
@@ -46,6 +47,60 @@ namespace Demo_Web_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Error al obtener usuarios", Error = ex.Message });
+            }
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> Update([FromBody] UpdateUserDto dto)
+        {
+            try
+            {
+                var user = await _userService.UpdateUserAsync(dto);
+                return Ok(new
+                {
+                    message = "Usuario actualizado con éxito",
+                    user.Id,
+                    user.UserName,
+                    user.Email
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPut("updateemail")]
+        public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmailDto dto)
+        {
+            try
+            {
+                var user = await _userService.UpdateEmailAsync(dto);
+                return Ok(new
+                {
+                    message = "Email actualizado con éxito",
+                    user.Id,
+                    user.UserName,
+                    user.Email
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete([FromQuery] int id)
+        {
+            try
+            {
+                await _userService.DeleteUserAsync(id);
+                return Ok(new { message = "Usuario eliminado con éxito" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
             }
         }
     }
